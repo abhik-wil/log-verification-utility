@@ -1,5 +1,5 @@
 module.exports = {
-  $id: "http://example.com/schema/onConfirmSchema",
+  $id: "logistics/v1.1/onStatusSchema",
   type: "object",
   properties: {
     context: {
@@ -14,11 +14,11 @@ module.exports = {
         },
         city: {
           type: "string",
-          const: { $data: "/on_search/0/context/city" },
+          const: { $data: "/search/0/context/city" },
         },
         action: {
           type: "string",
-          const: "on_confirm",
+          const: "on_status",
         },
         core_version: {
           type: "string",
@@ -46,28 +46,11 @@ module.exports = {
           type: "string",
           allOf: [
             {
-              const: { $data: "/confirm/0/context/message_id" },
-              errorMessage:
-                "Message ID for on_action API should be same as action API: ${/confirm/0/context/message_id}",
-            },
-            {
               not: {
                 const: { $data: "1/transaction_id" },
               },
               errorMessage:
                 "Message ID should not be equal to transaction_id: ${1/transaction_id}",
-            },
-            {
-              not: {
-                const: { $data: "/init/0/context/message_id" },
-              },
-              errorMessage: "Message ID should be unique",
-            },
-            {
-              not: {
-                const: { $data: "/search/0/context/message_id" },
-              },
-              errorMessage: "Message ID should be unique",
             }
           ],
         },
@@ -103,7 +86,13 @@ module.exports = {
             },
             state: {
               type: "string",
-              enum: ["Created", "Accepted", "Cancelled"],
+              enum: [
+                "Created",
+                "Accepted",
+                "In-progress",
+                "Completed",
+                "Cancelled",
+              ],
             },
             provider: {
               type: "object",
@@ -111,6 +100,7 @@ module.exports = {
                 id: {
                   type: "string",
                   const: { $data: "/init/0/message/order/provider/id" },
+                  errorMessage:"mismatches between /init and /on_status"
                 },
                 locations: {
                   type: "array",
@@ -119,30 +109,16 @@ module.exports = {
                     properties: {
                       id: {
                         type: "string",
-                        const: { $data: "/init/0/message/order/provider/locations/0/id" },
+                        const: {
+                          $data:
+                            "/init/0/message/order/provider/locations/0/id",
+                        },
                       },
                     },
-                    required: ["id"],
                   },
                 },
               },
               required: ["id"],
-              // oneOf: [
-              //   {
-              //     required: [
-              //       "/confirm/0/message/order/provider/locations",
-              //       "locations",
-              //     ],
-              //   },
-              //   {
-              //     not: {
-              //       required: [
-              //         "/confirm/0/message/order/provider/locations",
-              //         "locations",
-              //       ],
-              //     },
-              //   },
-              // ],
             },
             items: {
               type: "array",
@@ -155,14 +131,19 @@ module.exports = {
                   },
                   category_id: {
                     type: "string",
-                    const: { $data: "/init/0/message/order/items/0/category_id" },
+                    const: {
+                      $data: "/init/0/message/order/items/0/category_id",
+                    },
                   },
                   descriptor: {
                     type: "object",
                     properties: {
                       code: {
                         type: "string",
-                        const: { $data: "/init/0/message/order/items/0/descriptor/code" },
+                        const: {
+                          $data:
+                            "/init/0/message/order/items/0/descriptor/code",
+                        },
                       },
                     },
                     required: ["code"],
@@ -173,8 +154,6 @@ module.exports = {
             },
             quote: {
               type: "object",
-              const: { $data: "/confirm/0/message/order/quote" },
-              errorMessage: "object mismatches in /confirm and /on_confirm.",
               properties: {
                 price: {
                   type: "object",
@@ -184,10 +163,6 @@ module.exports = {
                     },
                     value: {
                       type: "string",
-                      const: {
-                        $data: "/confirm/0/message/order/quote/price/value",
-                      },
-                      errorMessage: "mismatches in /on_confirm and /confirm.",
                     },
                   },
                   required: ["currency", "value"],
@@ -202,14 +177,12 @@ module.exports = {
                       },
                       "@ondc/org/title_type": {
                         type: "string",
-                        enum: ["Delivery Charge", "Tax"],
                       },
                       price: {
                         type: "object",
                         properties: {
                           currency: {
                             type: "string",
-                            const: "INR",
                           },
                           value: {
                             type: "string",
@@ -233,17 +206,11 @@ module.exports = {
               items: {
                 type: "object",
                 properties: {
-                  id: {
-                    type: "string",
-                    const: {
-                      $data: "/confirm/0/message/order/fulfillments/0/id",
-                    },
-                  },
                   type: {
                     type: "string",
-                    const: {
-                      $data: "/confirm/0/message/order/fulfillments/0/type",
-                    },
+                  },
+                  "@ondc/org/awb_no": {
+                    type: "string",
                   },
                   state: {
                     type: "object",
@@ -253,17 +220,24 @@ module.exports = {
                         properties: {
                           code: {
                             type: "string",
-                            const: "Pending",
+                            enum: [
+                              "Pending",
+                              "Searching-for-Agent",
+                              "Agent-assigned",
+                              "Order-picked-up",
+                              "Out-for-delivery",
+                              "Order-delivered",
+                              "RTO-Initiated",
+                              "RTO-Delivered",
+                              "RTO-Disposed",
+                              "Cancelled",
+                            ],
                           },
                         },
                         required: ["code"],
                       },
                     },
                     required: ["descriptor"],
-                  },
-                  "@ondc/org/awb_no": {
-                    type: "string",
-
                   },
                   tracking: {
                     type: "boolean",
@@ -286,8 +260,32 @@ module.exports = {
                             },
                             required: ["start", "end"],
                           },
+                          timestamp: {
+                            type: "string",
+                            format: "date-time",
+                          },
                         },
                         required: ["range"],
+                      },
+                      instructions: {
+                        type: "object",
+                        properties: {
+                          name: {
+                            type: "string",
+                          },
+                          short_desc: {
+                            type: "string",
+                          },
+                          long_desc: {
+                            type: "string",
+                          },
+                          images: {
+                            type: "array",
+                            items: {
+                              type: "string",
+                            },
+                          },
+                        },
                       },
                     },
                     required: ["time"],
@@ -310,8 +308,32 @@ module.exports = {
                             },
                             required: ["start", "end"],
                           },
+                          timestamp: {
+                            type: "string",
+                            format: "date-time",
+                          },
                         },
                         required: ["range"],
+                      },
+                      instructions: {
+                        type: "object",
+                        properties: {
+                          name: {
+                            type: "string",
+                          },
+                          short_desc: {
+                            type: "string",
+                          },
+                          long_desc: {
+                            type: "string",
+                          },
+                          images: {
+                            type: "array",
+                            items: {
+                              type: "string",
+                            },
+                          },
+                        },
                       },
                     },
                     required: ["time"],
@@ -345,19 +367,103 @@ module.exports = {
                   },
                   "@ondc/org/ewaybillno": {
                     type: "string",
-                    const: { $data: "/confirm/0/message/order/fulfillments/0/@ondc~1org~1ewaybillno" },
-                   
-
                   },
                   "@ondc/org/ebnexpirydate": {
                     type: "string",
-                    format: "date-time",
-                    const: { $data: "/confirm/0/message/order/fulfillments/0/@ondc~1org~1ebnexpirydate"},
-                   
                   },
                 },
-                required: ["id", "type", "state", "tracking"],
+                if: { properties: { type: { const: "Prepaid" } } },
+                then: { required: ["type", "state", "tracking"] },
+                else: {
+                  required: ["type", "state"],
+                },
               },
+            },
+            payment: {
+              type: "object",
+              properties: {
+                type: {
+                  type: "string",
+                  const: { $data: "/on_init/0/message/order/payment/type" },
+                },
+                collected_by: {
+                  type: "string",
+                  const: {
+                    $data: "/on_init/0/message/order/payment/collected_by",
+                  },
+                },
+                "@ondc/org/settlement_details": {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      settlement_counterparty: {
+                        type: "string",
+                      },
+                      settlement_type: {
+                        type: "string",
+                      },
+                      upi_address: {
+                        type: "string",
+                      },
+                      settlement_bank_account_no: {
+                        type: "string",
+                      },
+                      settlement_ifsc_code: {
+                        type: "string",
+                      },
+                      settlement_status: {
+                        type: "string",
+                      },
+                      settlement_reference: {
+                        type: "string",
+                      },
+                      settlement_timestamp: {
+                        type: "string",
+                      },
+                    },
+                    allOf: [
+                      {
+                        if: {
+                          properties: {
+                            settlement_type: {
+                              const: "upi",
+                            },
+                          },
+                        },
+                        then: {
+                          required: ["upi_address"],
+                        },
+                      },
+                      {
+                        if: {
+                          properties: {
+                            settlement_type: {
+                              const: ["neft", "rtgs"],
+                            },
+                          },
+                        },
+                        then: {
+                          required: [
+                            "settlement_ifsc_code",
+                            "settlement_bank_account_no",
+                          ],
+                        },
+                      },
+                    ],
+                    required: ["settlement_counterparty", "settlement_type"],
+                  },
+                },
+              },
+              if: { properties: { type: { const: "ON-FULFILLMENT" } } },
+              then: {
+                properties: {
+                  collected_by: {
+                    const: "BPP",
+                  },
+                },
+              },
+              required: ["type", "collected_by"],
             },
             billing: {
               type: "object",
@@ -366,7 +472,7 @@ module.exports = {
                   type: "string",
                   const: { $data: "/confirm/0/message/order/billing/name" },
                   errorMessage:
-                    "mismatches in /billing in /confirm and /on_confirm",
+                    "mismatches in /billing in /confirm and /on_status",
                 },
                 address: {
                   type: "object",
@@ -378,23 +484,25 @@ module.exports = {
                         $data: "/confirm/0/message/order/billing/address/name",
                       },
                       errorMessage:
-                        "mismatches in /billing in /confirm and /on_confirm",
+                        "mismatches in /billing in /confirm and /on_status",
                     },
                     building: {
                       type: "string",
                       const: {
-                        $data: "/confirm/0/message/order/billing/address/building",
+                        $data:
+                          "/confirm/0/message/order/billing/address/building",
                       },
                       errorMessage:
-                        "mismatches in /billing in /confirm and /on_confirm",
+                        "mismatches in /billing in /confirm and /on_status",
                     },
                     locality: {
                       type: "string",
                       const: {
-                        $data: "/confirm/0/message/order/billing/address/locality",
+                        $data:
+                          "/confirm/0/message/order/billing/address/locality",
                       },
                       errorMessage:
-                        "mismatches in /billing in /confirm and /on_confirm",
+                        "mismatches in /billing in /confirm and /on_status",
                     },
                     city: {
                       type: "string",
@@ -402,7 +510,7 @@ module.exports = {
                         $data: "/confirm/0/message/order/billing/address/city",
                       },
                       errorMessage:
-                        "mismatches in /billing in /confirm and /on_confirm",
+                        "mismatches in /billing in /confirm and /on_status",
                     },
                     state: {
                       type: "string",
@@ -410,15 +518,16 @@ module.exports = {
                         $data: "/confirm/0/message/order/billing/address/state",
                       },
                       errorMessage:
-                        "mismatches in /billing in /confirm and /on_confirm",
+                        "mismatches in /billing in /confirm and /on_status",
                     },
                     country: {
                       type: "string",
                       const: {
-                        $data: "/confirm/0/message/order/billing/address/country",
+                        $data:
+                          "/confirm/0/message/order/billing/address/country",
                       },
                       errorMessage:
-                        "mismatches in /billing in /confirm and /on_confirm",
+                        "mismatches in /billing in /confirm and /on_status",
                     },
                     area_code: {
                       type: "string",
@@ -427,7 +536,7 @@ module.exports = {
                           "/confirm/0/message/order/billing/address/area code",
                       },
                       errorMessage:
-                        "mismatches in /billing in /confirm and /on_confirm",
+                        "mismatches in /billing in /confirm and /on_status",
                     },
                   },
                   additionalProperties: false,
@@ -443,70 +552,92 @@ module.exports = {
                 },
                 tax_number: {
                   type: "string",
-                  const: { $data: "/confirm/0/message/order/billing/tax_number" },
+                  const: {
+                    $data: "/confirm/0/message/order/billing/tax_number",
+                  },
                   errorMessage:
-                    "mismatches in /billing in /confirm and /on_confirm",
+                    "mismatches in /billing in /confirm and /on_status",
                 },
                 phone: {
                   type: "string",
                   const: { $data: "/confirm/0/message/order/billing/phone" },
                   errorMessage:
-                    "mismatches in /billing in /confirm and /on_confirm",
+                    "mismatches in /billing in /confirm and /on_status",
                 },
                 email: {
                   type: "string",
                   const: { $data: "/confirm/0/message/order/billing/email" },
                   errorMessage:
-                    "mismatches in /billing in /confirm and /on_confirm",
+                    "mismatches in /billing in /confirm and /on_status",
                 },
                 created_at: {
                   type: "string",
-                  const: { $data: "/confirm/0/message/order/billing/created_at" },
+                  const: {
+                    $data: "/confirm/0/message/order/billing/created_at",
+                  },
                   errorMessage:
-                    "mismatches in /billing in /confirm and /on_confirm",
+                    "mismatches in /billing in /confirm and /on_status",
                 },
                 updated_at: {
                   type: "string",
-                  const: { $data: "/confirm/0/message/order/billing/updated_at" },
+                  const: {
+                    $data: "/confirm/0/message/order/billing/updated_at",
+                  },
                   errorMessage:
-                    "mismatches in /billing in /confirm and /on_confirm",
+                    "mismatches in /billing in /confirm and /on_status",
                 },
               },
               additionalProperties: false,
-              required: [
-                "name",
-                "address",
-                "phone",
-                "tax_number",
-                "created_at",
-                "updated_at",
-              ],
+              required: ["name", "address", "phone", "tax_number"],
+            },
+            tags: {
+              type: "object",
+              properties: {
+                cancellation_reason_id: {
+                  type: "string",
+                },
+                "AWB no": {
+                  type: "string",
+                },
+              },
             },
             created_at: {
               type: "string",
               const: { $data: "/confirm/0/message/order/created_at" },
               errorMessage:
-                "mismatches in /confirm and /on_confirm",
+                "mismatches in /confirm and /on_status",
             },
             updated_at: {
-              type: "string",
-              const: { $data: "3/context/timestamp" },
-              errorMessage:
-                "does not match context/timestamp - ${3/context/timestamp}",
+              type: "string"
             },
           },
           additionalProperties:false,
-          required: [
-            "id",
-            "state",
-            "provider",
-            "items",
-            "quote",
-            "fulfillments",
-            "billing",
-            "created_at",
-            "updated_at",
-          ],
+          if: { properties: { state: { const: "Cancelled" } } },
+          then: {
+            required: [
+              "id",
+              "state",
+              "provider",
+              "items",
+              "quote",
+              "fulfillments",
+              "payment",
+              "billing",
+              "tags"
+            ],
+          },
+          else: {
+            required: [
+              "id",
+              "state",
+              "provider",
+              "items",
+              "quote",
+              "fulfillments",
+              "payment",
+              "billing",
+            ],
+          },
         },
       },
       required: ["order"],
@@ -514,31 +645,37 @@ module.exports = {
     search: {
       type: "array",
       items: {
-        $ref: "searchSchema#",
+        $ref: "logistics/v1.1/searchSchema#",
       },
     },
     on_search: {
       type: "array",
       items: {
-        $ref: "onSearchSchema#",
+        $ref: "logistics/v1.1/onSearchSchema#",
       },
     },
     init: {
       type: "array",
       items: {
-        $ref: "initSchema#",
+        $ref: "logistics/v1.1/initSchema#",
       },
     },
     on_init: {
       type: "array",
       items: {
-        $ref: "onInitSchema#",
+        $ref: "logistics/v1.1/onInitSchema#",
       },
     },
     confirm: {
       type: "array",
       items: {
-        $ref: "confirmSchema#",
+        $ref: "logistics/v1.1/confirmSchema#",
+      },
+    },
+    status: {
+      type: "array",
+      items: {
+        $ref: "logistics/v1.1/statusSchema#",
       },
     },
   },

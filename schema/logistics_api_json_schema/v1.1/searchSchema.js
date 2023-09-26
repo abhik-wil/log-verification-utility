@@ -1,5 +1,5 @@
 module.exports = {
-  $id: "http://example.com/schema/searchSchema",
+  $id: "logistics/v1.1/searchSchema",
   type: "object",
   properties: {
     context: {

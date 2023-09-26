@@ -1,5 +1,5 @@
 module.exports = {
-  $id: "http://example.com/schema/trackSchema",
+  $id: "logistics/v1.1/statusSchema",
   type: "object",
   properties: {
     context: {
@@ -17,11 +17,11 @@ module.exports = {
         },
         action: {
           type: "string",
-          const: "track",
+          const: "status",
         },
         core_version: {
           type: "string",
-          const:"1.1.0"
+          const: "1.1.0",
         },
         bap_id: {
           type: "string",
@@ -44,6 +44,7 @@ module.exports = {
         message_id: {
           type: "string",
           allOf: [
+            
             {
               not: {
                 const: { $data: "1/transaction_id" },
@@ -55,11 +56,11 @@ module.exports = {
         },
         timestamp: {
           type: "string",
-          format:"date-time"
+          format: "date-time",
         },
         ttl: {
           type: "string",
-          const: "PT30S"
+          const: "PT30S",
         },
       },
       required: [
@@ -84,11 +85,8 @@ module.exports = {
         order_id: {
           type: "string",
         },
-        callback_url: {
-          type: "string",
-        },
       },
-      required: ["order_id", "callback_url"],
+      required: ["order_id"],
     },
   },
   required: ["context", "message"],

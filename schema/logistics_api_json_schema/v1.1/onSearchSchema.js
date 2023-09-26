@@ -1,7 +1,5 @@
-const { error } = require("ajv/dist/vocabularies/applicator/dependencies");
-
 module.exports = {
-  $id: "http://example.com/schema/onSearchSchema",
+  $id: "logistics/v1.1/onSearchSchema",
   type: "object",
   properties: {
     context: {
@@ -368,7 +366,7 @@ module.exports = {
   search: {
     type: "array",
     items: {
-      $ref: "searchSchema#",
+      $ref: "logistics/v1.1/searchSchema#",
     },
   },
 

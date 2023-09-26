@@ -1,5 +1,5 @@
 module.exports = {
-  $id: "http://example.com/schema/onInitSchema",
+  $id: "logistics/v1.1/onInitSchema",
   type: "object",
   properties: {
     context: {
@@ -268,19 +268,19 @@ module.exports = {
     search: {
       type: "array",
       items: {
-        $ref: "searchSchema#",
+        $ref: "logistics/v1.1/searchSchema#",
       },
     },
     init: {
       type: "array",
       items: {
-        $ref: "initSchema#",
+        $ref: "logistics/v1.1/initSchema#",
       },
     },
     on_search: {
       type: "array",
       items: {
-        $ref: "onSearchSchema#",
+        $ref: "logistics/v1.1/onSearchSchema#",
       },
     },
   },

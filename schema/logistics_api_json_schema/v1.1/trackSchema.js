@@ -1,5 +1,5 @@
 module.exports = {
-  $id: "http://example.com/schema/supportSchema",
+  $id: "logistics/v1.1/trackSchema",
   type: "object",
   properties: {
     context: {
@@ -17,7 +17,7 @@ module.exports = {
         },
         action: {
           type: "string",
-          const: "support",
+          const: "track",
         },
         core_version: {
           type: "string",
@@ -43,9 +43,15 @@ module.exports = {
         },
         message_id: {
           type: "string",
-          const: { $data: "/support/0/context/message_id" },
-          errorMessage:
-            "Message ID should be same as /init: ${/support/0/context/message_id}",
+          allOf: [
+            {
+              not: {
+                const: { $data: "1/transaction_id" },
+              },
+              errorMessage:
+                "Message ID should not be equal to transaction_id: ${1/transaction_id}",
+            }
+          ],
         },
         timestamp: {
           type: "string",
@@ -53,7 +59,7 @@ module.exports = {
         },
         ttl: {
           type: "string",
-          const :"PT30S"
+          const: "PT30S"
         },
       },
       required: [
@@ -75,11 +81,14 @@ module.exports = {
     message: {
       type: "object",
       properties: {
-        ref_id: {
+        order_id: {
+          type: "string",
+        },
+        callback_url: {
           type: "string",
         },
       },
-      required: ["ref_id"],
+      required: ["order_id", "callback_url"],
     },
   },
   required: ["context", "message"],

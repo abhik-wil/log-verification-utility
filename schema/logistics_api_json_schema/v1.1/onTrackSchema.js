@@ -1,5 +1,5 @@
 module.exports = {
-  $id: "http://example.com/schema/cancelSchema",
+  $id: "logistics/v1.1/onTrackSchema",
   type: "object",
   properties: {
     context: {
@@ -14,14 +14,15 @@ module.exports = {
         },
         city: {
           type: "string",
+          const: { $data: "/search/0/context/city" },
         },
         action: {
           type: "string",
-          const: "cancel",
+          const: "on_track",
         },
         core_version: {
           type: "string",
-          const: "1.1.0",
+          const:"1.1.0"
         },
         bap_id: {
           type: "string",
@@ -45,6 +46,11 @@ module.exports = {
           type: "string",
           allOf: [
             {
+              const: { $data: "/track/0/context/message_id" },
+              errorMessage:
+                "Message ID should be same as /track: ${/track/0/context/message_id}",
+            },
+            {
               not: {
                 const: { $data: "1/transaction_id" },
               },
@@ -56,10 +62,6 @@ module.exports = {
         timestamp: {
           type: "string",
           format:"date-time"
-        },
-        ttl: {
-          type: "string",
-          const: "PT30S",
         },
       },
       required: [
@@ -75,20 +77,38 @@ module.exports = {
         "transaction_id",
         "message_id",
         "timestamp",
-        "ttl",
       ],
     },
     message: {
       type: "object",
       properties: {
-        order_id: {
-          type: "string",
-        },
-        cancellation_reason_id: {
-          type: "string",
+        tracking: {
+          type: "object",
+          properties: {
+            url: {
+              type: "string",
+            },
+            status: {
+              type: "string",
+              enum:["active","inactive"]
+            },
+          },
+          required: ["url", "status"],
         },
       },
-      required: ["order_id", "cancellation_reason_id"],
+      required: ["tracking"],
+    },
+  },
+  search: {
+    type: "array",
+    items: {
+      $ref: "logistics/v1.1/searchSchema#",
+    },
+  },
+  on_search: {
+    type: "array",
+    items: {
+      $ref: "logistics/v1.1/onSearchSchema#",
     },
   },
   required: ["context", "message"],

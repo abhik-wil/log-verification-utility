@@ -1,5 +1,5 @@
 module.exports = {
-  $id: "http://example.com/schema/onSupportSchema",
+  $id: "logistics/v1.1/supportSchema",
   type: "object",
   properties: {
     context: {
@@ -14,11 +14,10 @@ module.exports = {
         },
         city: {
           type: "string",
-          const: { $data: "/search/0/context/city" },
         },
         action: {
           type: "string",
-          const: "on_support",
+          const: "support",
         },
         core_version: {
           type: "string",
@@ -44,24 +43,17 @@ module.exports = {
         },
         message_id: {
           type: "string",
-          allOf: [
-            {
-              const: { $data: "/support/0/context/message_id" },
-              errorMessage:
-                "Message ID should be same as /support: ${/support/0/context/message_id}",
-            },
-            {
-              not: {
-                const: { $data: "1/transaction_id" },
-              },
-              errorMessage:
-                "Message ID should not be equal to transaction_id: ${1/transaction_id}",
-            }
-          ],
+          const: { $data: "/support/0/context/message_id" },
+          errorMessage:
+            "Message ID should be same as /init: ${/support/0/context/message_id}",
         },
         timestamp: {
           type: "string",
           format:"date-time"
+        },
+        ttl: {
+          type: "string",
+          const :"PT30S"
         },
       },
       required: [
@@ -77,34 +69,17 @@ module.exports = {
         "transaction_id",
         "message_id",
         "timestamp",
+        "ttl",
       ],
     },
     message: {
       type: "object",
       properties: {
-        phone: {
-          type: "string",
-        },
-        email: {
-          type: "string",
-        },
-        uri: {
+        ref_id: {
           type: "string",
         },
       },
-      required: ["phone", "email", "uri"],
-    },
-  },
-  search: {
-    type: "array",
-    items: {
-      $ref: "searchSchema#",
-    },
-  },
-  on_search: {
-    type: "array",
-    items: {
-      $ref: "onSearchSchema#",
+      required: ["ref_id"],
     },
   },
   required: ["context", "message"],

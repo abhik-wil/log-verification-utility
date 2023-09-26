@@ -1,5 +1,5 @@
 module.exports = {
-  $id: "http://example.com/schema/onUpdateSchema",
+  $id: "logistics/v1.1/onUpdateSchema",
   type: "object",
   properties: {
     context: {
@@ -303,43 +303,43 @@ module.exports = {
     search: {
       type: "array",
       items: {
-        $ref: "searchSchema#",
+        $ref: "logistics/v1.1/searchSchema#",
       },
     },
     on_search: {
       type: "array",
       items: {
-        $ref: "onSearchSchema#",
+        $ref: "logistics/v1.1/onSearchSchema#",
       },
     },
     init: {
       type: "array",
       items: {
-        $ref: "initSchema#",
+        $ref: "logistics/v1.1/initSchema#",
       },
     },
     on_init: {
       type: "array",
       items: {
-        $ref: "onInitSchema#",
+        $ref: "logistics/v1.1/onInitSchema#",
       },
     },
     confirm: {
       type: "array",
       items: {
-        $ref: "confirmSchema#",
+        $ref: "logistics/v1.1/confirmSchema#",
       },
     },
     on_confirm: {
       type: "array",
       items: {
-        $ref: "onConfirmSchema#",
+        $ref: "logistics/v1.1/onConfirmSchema#",
       },
     },
     update: {
       type: "array",
       items: {
-        $ref: "updateSchema#",
+        $ref: "logistics/v1.1/updateSchema#",
       },
     },
   },

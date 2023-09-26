@@ -1,5 +1,5 @@
 module.exports = {
-  $id: "http://example.com/schema/statusSchema",
+  $id: "logistics/v1.1/onSupportSchema",
   type: "object",
   properties: {
     context: {
@@ -14,14 +14,15 @@ module.exports = {
         },
         city: {
           type: "string",
+          const: { $data: "/search/0/context/city" },
         },
         action: {
           type: "string",
-          const: "status",
+          const: "on_support",
         },
         core_version: {
           type: "string",
-          const: "1.1.0",
+          const:"1.1.0"
         },
         bap_id: {
           type: "string",
@@ -44,7 +45,11 @@ module.exports = {
         message_id: {
           type: "string",
           allOf: [
-            
+            {
+              const: { $data: "/support/0/context/message_id" },
+              errorMessage:
+                "Message ID should be same as /support: ${/support/0/context/message_id}",
+            },
             {
               not: {
                 const: { $data: "1/transaction_id" },
@@ -56,11 +61,7 @@ module.exports = {
         },
         timestamp: {
           type: "string",
-          format: "date-time",
-        },
-        ttl: {
-          type: "string",
-          const: "PT30S",
+          format:"date-time"
         },
       },
       required: [
@@ -76,17 +77,34 @@ module.exports = {
         "transaction_id",
         "message_id",
         "timestamp",
-        "ttl",
       ],
     },
     message: {
       type: "object",
       properties: {
-        order_id: {
+        phone: {
+          type: "string",
+        },
+        email: {
+          type: "string",
+        },
+        uri: {
           type: "string",
         },
       },
-      required: ["order_id"],
+      required: ["phone", "email", "uri"],
+    },
+  },
+  search: {
+    type: "array",
+    items: {
+      $ref: "logistics/v1.1/searchSchema#",
+    },
+  },
+  on_search: {
+    type: "array",
+    items: {
+      $ref: "logistics/v1.1/onSearchSchema#",
     },
   },
   required: ["context", "message"],
